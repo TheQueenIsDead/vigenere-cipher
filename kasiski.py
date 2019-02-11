@@ -182,23 +182,36 @@ class Kasiski():
         #     for c in s:
         #         self.brute_layer(char_arrays, c, )
 
+        #
+        # results = []
+        #
+        # print("Easy:", list(itertools.product(char_arrays[0], char_arrays[1])))
+        # print()
+        #
 
-        results = []
+        print("Starting brute...")
+        i, j = 1, 2
+        res = list(itertools.product(char_arrays[0], char_arrays[1]))
+        while j < len(char_arrays):
+            res = list(itertools.product(res, char_arrays[j]))
+            i, j = i + 1, j + 1
 
-        print("Easy:", list(itertools.product(char_arrays[0], char_arrays[1])))
-        prod = list(itertools.product(char_arrays[0], char_arrays[1]))
-        print(list(itertools.product(prod, char_arrays[2])))
 
+        def unwrap(values):
 
-        # for i, l in enumerate(char_arrays):
-        #     if i + 1 < len(char_arrays):
-        #         results += list(itertools.product(results, l))
+            if isinstance(values[0], str) and isinstance(values[1], str): # Base case of two ints
+                return [values[1], values[0]]
 
-        print("Res:")
-        pprint.pprint(results)
+            res = [values[-1]]
+            res += unwrap(values[0])
+            return res
 
-    def brute_layer(self, current_string, next_array, results):
-        pass
+        possible_keys = []
+        for tuple_set in res:
+            # print(tuple_set)
+            possible_keys.append("".join(reversed(unwrap(tuple_set))))
+
+        return possible_keys
 
 k = Kasiski()
 
