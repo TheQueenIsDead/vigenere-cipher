@@ -1,11 +1,13 @@
 import itertools
 import pprint
 import re
+import time
 from functools import reduce
 from itertools import permutations
 
 import freqAnalysis
 from vigenere import Vigenere
+import quadgram_analysis
 # https://inventwithpython.com/hacking/chapter21.html
 
 
@@ -127,12 +129,17 @@ class Kasiski():
 
         pprint.pprint(factor_count)
 
-        # Print and return highest likelihood
+        # Print and return highest likelihood   # INFO - This worked for the small cipher, but needs to be encompassing
+                                                # for larger sets of text, such as ciphertext.txt from hackthebox.eu
+                                                # Will make it larger than an average. Making it so helps us immensly
+
         max_freq = max([v for (k, v) in factor_count.items()])
+        min_freq = min([v for (k, v) in factor_count.items()])
+        avg_freq = (max_freq - min_freq) / 2
 
         # print(max_freq)
 
-        highest = [ k for (k, v) in factor_count.items() if v == max_freq]
+        highest = [ k for (k, v) in factor_count.items() if v >= avg_freq]
 
         # print("Highest:", highest)
 
@@ -211,12 +218,21 @@ class Kasiski():
             # print(tuple_set)
             possible_keys.append("".join(reversed(unwrap(tuple_set))))
 
-        return possible_keys
+        results = []
+        for key in possible_keys:
+            # print("Scanning", key)
+            self.v.set_key(key)
+            plaintext = self.v.decrypt(self.ct)
+            fitness = quadgram_analysis.ngram_score("english_quadgrams.txt").score(plaintext)
+            results.append((key, plaintext, fitness))
+        return results
 
 k = Kasiski()
 
 print("Ciphertext:")
-k.set_ct("Ppqca xqvekg ybnkmazu ybngbal jon i tszm jyim. Vrag voht vrau c tksg. Ddwuo xitlazu vavv raz c vkb qp iwpou.")
+with open('ciphertext.txt', 'r') as ctf:
+    # k.set_ct("Ppqca xqvekg ybnkmazu ybngbal jon i tszm jyim. Vrag voht vrau c tksg. Ddwuo xitlazu vavv raz c vkb qp iwpou.")
+    k.set_ct(ctf.read())
 print(k.ct)
 
 print("Periods:")
@@ -229,15 +245,15 @@ print(factors)
 
 
 # Proper, but we'll only work with 4 for the current moment
-# print("Get N Letters:")
-# for length in factors:
-#     n_strings = k.getNthLetters(length)
-#     pprint.pprint(n_strings)
-
-
 print("Get N Letters:")
-n_strings = k.getNthLetters(4) # Because 4 is returned in the above example, refer to above for proper stuff
-pprint.pprint(n_strings)
+for length in factors:
+    n_strings = k.getNthLetters(length)
+    pprint.pprint(n_strings)
+
+
+# print("Get N Letters:")
+# n_strings = k.getNthLetters(4) # Because 4 is returned in the above example, refer to above for proper stuff
+# pprint.pprint(n_strings)
 
 print("Cycling:")
 possible_keys = []
@@ -248,8 +264,14 @@ for i, s in enumerate(n_strings): # TODO - Remove [:1] from here, once again lim
     pprint.pprint([x[0] for x in i_keys])
 
 print("Brute forcing")
-print(k.brute_force(possible_keys))
-
+start_time = time.time()
+print(f"Start - {start_time}")
+force_results = k.brute_force(possible_keys)
+end_time = time.time()
+print(f"End - {end_time}")
+print(f"Duration: {end_time - start_time}s")
+print("Top results are:")
+pprint.pprint([x for x in sorted(force_results, key=lambda x: x[2], reverse=True)][:3])
 
 
 
