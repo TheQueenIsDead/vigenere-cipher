@@ -2,7 +2,9 @@
 Allows scoring of text using n-gram probabilities
 17/07/12
 '''
+import pprint
 from math import log10
+from vigenere import Vigenere
 
 class ngram_score(object):
     def __init__(self,ngramfile,sep=' '):
@@ -32,27 +34,88 @@ fitness = ngram_score('english_quadgrams.txt')
 print(fitness.score('ATTACK THE EAST WALL OF THE CASTLE AT DAWN'))
 
 
-key_len = 7
+def get_eval_text(index, ct, period):
 
-key = "A" * 7
+    index += 1 # We want count, not index
+
+    s = ""
+
+    cc = 0
+    while cc < len(ct):
+        s += ct[cc:cc+index]
+        cc += period
+
+    return s
+
+print(get_eval_text(3, "DEFERULHEEAWKOALLOJKZECASXCW", 7))
+
+
+
 
 # A is 1
 
 # For every character in the key
-for i in range(0, key_len):
-    print(i)
 
-    # Cycle the char through 26 letters assessing the fitness
-    results = []
-    for char in range(0, 25):
-        up_cycled_char = chr(  ((ord(key[i].upper()) - 64) + 1) + 64)
-        key = key[:i] + up_cycled_char + key[i+1:] # Up to current cycler, plus newly cycled char, plus rest
+v = Vigenere()
 
-        #decipher text with key
+ct = "FMULRULJMTHWKOCTAVJKZGKPZXCW"
+for k in range(3, 20):
 
-        #print decipherd score with key
-        print(key, fitness.score(key))
+    key_len = 7
+    key = "A" * 7
+
+    for i in range(0, key_len):
+        # print(i)
+
+        # Cycle the char through 26 letters assessing the fitness
+        results = []
+        for char in range(0, 25):
+
+            # Test key
+
+            #decipher text with key
+            v.set_key(key)
+            # print(key, v.decrypt(ct), fitness.score(v.decrypt(ct)))
+
+            results.append({
+                "score": fitness.score(get_eval_text(i, v.decrypt(ct), key_len)),
+                "key": key,
+                "decryption": v.decrypt(ct),
+                "char": key[i]
+            })
 
 
 
-print(ord('A'))
+
+            # TODO - Need to evaluate the lowest fitness score and lock that in place for the round.
+
+
+            # Cycle key for next loop
+            up_cycled_char = chr(  ((ord(key[i].upper()) - 64) + 1) + 64)
+            key = key[:i] + up_cycled_char + key[i+1:] # Up to current cycler, plus newly cycled char, plus rest
+
+        # After we have the results, lock the highest fitness index as the key
+        key = key[:i] + sorted(results, key=lambda x: x['score'], reverse=True)[0]['char'] + key[i+1:]
+
+        # pprint.pprint([ (x['char'], x['score']) for x in sorted(results, key=lambda x: x['score'], reverse=True)])
+    print(key)
+
+
+
+
+
+"""
+we should only calculate fitness from the shaded parts of the decrypted text.
+This reduces the effect on the total fitness of the garbled text that is present due to unsearched components of the key.
+
+(If we're on the third letter, only search those initial letters every period of the test key)
+
+current key: CIPHAAACIPHAAACIPHAAACIPHAAA
+ ciphertext: FMULRULJMTHWKOCTAVJKZGKPZXCW
+  decrypted: DEFERULHEEAWKOALLOJKZECASXCW
+
+
+
+
+
+"""

@@ -57,25 +57,6 @@ def get_chr(int):
 # get_chr(1)
 # get_chr(2)
 
-def vigenere_encrypt(key, plaintext):
-
-    plaintext = plaintext.replace(' ', '').upper()
-
-    if len(plaintext) > len(key):
-        multiplier = math.ceil(len(plaintext) / len(key))
-        key = key * multiplier
-
-    key = key[:len(plaintext)]
-    print(key)
-    print(plaintext)
-
-    print("Cipher:")
-    # print("".join([ table[get_int(char)][get_int(key[i])] for (i, char) in enumerate(plaintext) ]))
-    for i, char in enumerate(plaintext):
-        # print(i, char, ": ", key[i], get_int(key[i]))
-        print(get_chr(table[get_int(char)][get_int(key[i])]), end="")
-    print("")
-
 
 def apparitions(chaine):
     app = [0] * 26
@@ -96,6 +77,8 @@ def mean(numbers):
 
 def chi_squared(phrase):
 
+    # this works as well as the practical cryptography example
+
     phrase = phrase.replace(' ', '').upper()
     expected = [0.08167, 0.01492, 0.02782, 0.04253, 0.12702, 0.02228, 0.02015, 0.06094, 0.06966, 0.00153, 0.00772,
                 0.04025, 0.02406, 0.06749, 0.07507, 0.01929, 0.00095, 0.05987, 0.06327, 0.09056, 0.02758, 0.00978,
@@ -114,15 +97,21 @@ def chi_squared(phrase):
 
     return sum1
 
+
+
+
 def vigenere_crack(ciphertext):
+    TRIAL_KEY = ""
     # Assume len(key) == 2 first
     key_len = 2
     max_len = 15
+
+    # CVa;culate trials by creating different strings to evaluate using the IC and log the ic results in trials
     trials = []
     for length in range(key_len, max_len + 1):
         for run in range(1, length + 1):
-            print("If key were len", length)
-            print("Sequence", run)
+            # print("If key were len", length)
+            # print("Sequence", run)
             cc = run - 1
             st = ""
             while cc <= len(ciphertext) - 1:
@@ -132,40 +121,43 @@ def vigenere_crack(ciphertext):
             # print(st, f"({ic(st)}")
             trials.append([length, run, st, ic(st)])
 
-    pprint.pprint(trials)
+    # pprint.pprint(trials)
 
+    # Here we find the trial with the highest average IC value, this is the most likely to be the period
+    # Once we have that, we take the string from that recurrent key length
     averages = {}
     for length in range(key_len, max_len + 1):
-        m = str(round(mean([x[3] for x in trials if x[0] == length]), 1))
+        m = str(round(mean([x[3] for x in trials if x[0] == length]), 3))
         if m in averages:
             averages[m].append(length)
         else:
             averages[m] = [length]
-    # Only try the top key for development purposes
-    # print(averages.keys())
-    # print(max(averages.keys()))
-    # print(averages[max(averages.keys())])
-    # print(min(averages[max(averages.keys())]))
-
-    smallest_key = min(averages[max(averages.keys())])
+    print("keys", averages.keys())
+    smallest_key = min(averages[str(max([ float(x) for x in averages.keys()] ))])
+    print("smallest_key:", smallest_key)
+    print("averages:", averages)
     test_str = "".join([x for (i, x) in enumerate(ciphertext) if i % smallest_key == 0])
-    print(test_str)
+    print("Test String:", test_str)
 
     # Test deciphering and have a squiz for the lowest chi-sq
 
-    lowest_chi = float('inf')
-    chi_val = None
-    print(lowest_chi)
-    for i in range(0, 26):
-        s = ""
-        for char in test_str:
-            s += get_chr((get_int(char) - i) % 26) # TODO - Cant MOD here as the ascii stuff sits can I?
-        print(i, s, chi_squared(s))
-        if lowest_chi > chi_squared(s):
-            lowest_chi = chi_squared(s)
-            chi_val = i
+    for i, trial in enumerate([ x for x in filter(lambda x: x[0] == 7, trials)]):
+        lowest_chi = float('inf')
+        chi_val = None
+        for i in range(0, 26):
+            s = ""
+            for char in trial[2]:
+                s += get_chr((get_int(char) - i) % 26) # TODO - Cant MOD here as the ascii stuff sits can I?
+            # print(i, s, chi_squared(s))
+            if lowest_chi > chi_squared(s):
+                lowest_chi = chi_squared(s)
+                chi_val = i
 
-    print(chi_val, lowest_chi)
+        # print(chi_val, lowest_chi)
+
+        TRIAL_KEY += get_chr(chi_val)
+        print(TRIAL_KEY)
+
 
     # Got the chi value thats lowest, it gave us 2, which is C (ABC)
     # Now we need to do this again for the other string up until length 7, len 7 because we identified it as the period
@@ -173,12 +165,10 @@ def vigenere_crack(ciphertext):
 
 
 
-# vigenere_encrypt("FORTIFICATION", "DEFENDTHEEASTWALLOFTHECASTLE")
-# vigenere_encrypt("defend the east wall of the castle", "fortification")
+
 
 vigenere_crack("vptnvffuntshtarptymjwzirappljmhhqvsubwlzzygvtyitarptyiougxiuydtgzhhvvmumshwkzgstfmekvmpkswdgbilvjljmglmjfqwioiivknulvvfemioiemojtywdsajtwmtcgluysdsumfbieugmvalvxkjduetukatymvkqzhvqvgvptytjwwldyeevquhlulwpkt")
-
-
-
-
-chi_squared("Defend the east wall of the castle")
+print("\n")
+with open('ciphertext.txt') as cipher_file:
+    ct = cipher_file.read().replace(" ", "").replace(",", "").replace(".", "").lower().strip('\n')
+    vigenere_crack(ct)

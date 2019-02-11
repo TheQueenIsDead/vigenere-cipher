@@ -35,7 +35,6 @@ class Vigenere():
 
     def encrypt(self, plaintext):
 
-
         plaintext = plaintext.replace(' ', '').upper()
 
         if len(plaintext) > len(self.key):
@@ -43,17 +42,15 @@ class Vigenere():
             key = self.key * multiplier
 
         key = key[:len(plaintext)]
-        print(key)
-        print(plaintext)
 
-        print("Cipher:")
-        # print("".join([ table[get_int(char)][get_int(key[i])] for (i, char) in enumerate(plaintext) ]))
+        ciphertext = ""
         for i, char in enumerate(plaintext):
-            # print(i, char, ": ", key[i], get_int(key[i]))
-            print(self.get_chr(self.table[self.get_int(char)][self.get_int(key[i])]), end="")
-        print("")
+            ciphertext += self.get_chr(self.table[self.get_int(char)][self.get_int(key[i])])
+        return ciphertext
 
     def decrypt(self, ciphertext):
+
+        ciphertext = ciphertext.replace(' ', '').upper()
 
         if len(ciphertext) > len(self.key):
             multiplier = math.ceil(len(ciphertext) / len(self.key))
@@ -61,24 +58,21 @@ class Vigenere():
         key = key[:len(ciphertext)]
 
 
-        print("Decipher")
+        plaintext = ""
         for i, c in enumerate(ciphertext):
             row = self.table[self.get_int(key[i])]
-            print(self.get_chr(row.index(self.get_int(c))), end="")
-            cipher_index = None # Current cipher letter in the above row
-            column = None # Index as above
+            plaintext += self.get_chr(row.index(self.get_int(c)))
 
-            # Here the column is the actual a-z int val
+        return plaintext
 
 
-            # we need to find the c in the row designated by key, and then fihure out the index as it will be the pt
-        print("")
+k = "FORTIFICATION"
+pt = "DEFENDTHEEASTWALLOFTHECASTLE"
+ct = "ISWXVIBJEXIGGBOCEWKBJEVIGGQS"
 
+v = Vigenere()
+v.set_key(k)
 
-v = Vigenere();
-v.set_key("FORTIFICATION")
-v.encrypt("DEFENDTHEEASTWALLOFTHECASTLE")
-v.decrypt("ISWXVIBJEXIGGBOCEWKBJEVIGGQS")
-
-# vigenere_encrypt("FORTIFICATION", "DEFENDTHEEASTWALLOFTHECASTLE")
-# vigenere_encrypt("defend the east wall of the castle", "fortification")
+assert v.key == "FORTIFICATION"
+assert v.encrypt(pt) == ct
+assert v.decrypt(ct) == pt
