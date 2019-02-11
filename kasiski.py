@@ -10,8 +10,6 @@ from vigenere import Vigenere
 import quadgram_analysis
 # https://inventwithpython.com/hacking/chapter21.html
 
-
-
 class Kasiski():
 
     def __init__(self):
@@ -22,17 +20,6 @@ class Kasiski():
         # Make sure ct is only alphanumeric
         filter_re = re.compile('[^a-zA-Z]')
         self.ct = filter_re.sub('', ct).upper()
-
-    # def isRepeating(self, substr):
-    #
-    #     index = self.ct.find(substr)
-    #     if index == -1:
-    #         return False
-    #     else:
-    #         # Search rest of the string
-    #         second = self.ct[index+len(substr):].find(substr)
-    #         if second != -1:
-    #             print(f"Found {substr} at {index}, and {second}")
 
     def findPeriod(self):
 
@@ -66,21 +53,6 @@ class Kasiski():
         l = [x for x in filter(lambda x: x['count'] > 1, d.values())]
 
         for item in l:
-
-
-            # print("Indexes:", item['indexes'])
-
-            # Old incorrect version
-            # item['spaces'] = []
-            # i, j = 0, 1
-            # while i < len(item['indexes']):
-            #     if j >= len(item['indexes']):
-            #         item['spaces'].append(item['indexes'][0] - item['indexes'][i])
-            #     # print(item['substr'], ":", item['indexes'][i], item['indexes'][j], item['indexes'][j] - item['indexes'][i])
-            #     else:
-            #         print(len(item['indexes']), i, j)
-            #         item['spaces'].append(item['indexes'][j] - item['indexes'][i])
-            #     i, j = i + 1, j + 1
 
             i = 0
             item['spaces'] = []
@@ -129,9 +101,10 @@ class Kasiski():
 
         pprint.pprint(factor_count)
 
-        # Print and return highest likelihood   # INFO - This worked for the small cipher, but needs to be encompassing
-                                                # for larger sets of text, such as ciphertext.txt from hackthebox.eu
-                                                # Will make it larger than an average. Making it so helps us immensly
+        # Print and return highest likelihood
+        #  INFO - This worked for the small cipher, but needs to be encompassing
+        #  for larger sets of text, such as ciphertext.txt from hackthebox.eu
+        #  Will make it larger than an average. Making it so helps us immensly
 
         max_freq = max([v for (k, v) in factor_count.items()])
         min_freq = min([v for (k, v) in factor_count.items()])
@@ -183,18 +156,6 @@ class Kasiski():
     def brute_force(self, possible_keys):
         char_arrays = [[y[0] for y in x] for x in possible_keys]
         print(char_arrays)
-
-
-        # for s in char_arrays:
-        #     for c in s:
-        #         self.brute_layer(char_arrays, c, )
-
-        #
-        # results = []
-        #
-        # print("Easy:", list(itertools.product(char_arrays[0], char_arrays[1])))
-        # print()
-        #
 
         print("Starting brute...")
         i, j = 1, 2
@@ -250,14 +211,9 @@ for length in factors:
     n_strings = k.getNthLetters(length)
     pprint.pprint(n_strings)
 
-
-# print("Get N Letters:")
-# n_strings = k.getNthLetters(4) # Because 4 is returned in the above example, refer to above for proper stuff
-# pprint.pprint(n_strings)
-
 print("Cycling:")
 possible_keys = []
-for i, s in enumerate(n_strings): # TODO - Remove [:1] from here, once again limiting for the example
+for i, s in enumerate(n_strings):
     print(f"The most likely keys for string {i} are:")
     i_keys = k.cycleDecypher(s)
     possible_keys.append(i_keys)
