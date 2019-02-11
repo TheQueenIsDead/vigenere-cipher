@@ -5,7 +5,7 @@ import time
 from functools import reduce
 from itertools import permutations
 
-import freqAnalysis
+import freq_analysis
 from vigenere import Vigenere
 import quadgram_analysis
 # https://inventwithpython.com/hacking/chapter21.html
@@ -148,8 +148,8 @@ class Kasiski():
             s = ""
             for char in ciphertext:
                 s += self.v.get_chr((self.v.get_int(char) - i) % 26)
-            most_probable.append((self.v.get_chr(i), s, freqAnalysis.englishFreqMatchScore(s)))
-            highest = max(highest, freqAnalysis.englishFreqMatchScore(s))
+            most_probable.append((self.v.get_chr(i), s, freq_analysis.englishFreqMatchScore(s)))
+            highest = max(highest, freq_analysis.englishFreqMatchScore(s))
 
         return [ x for x in most_probable if x[2] == highest]
 
@@ -184,7 +184,11 @@ class Kasiski():
             # print("Scanning", key)
             self.v.set_key(key)
             plaintext = self.v.decrypt(self.ct)
-            fitness = quadgram_analysis.ngram_score("english_quadgrams.txt").score(plaintext)
+            # INFO: Can do either quadgram analysis or english letter frequency analysis
+            # Letter analysis takes:        0.0009961128234863281 s
+            # where quadram analysis takes: 0.4628336429595947 s
+            # fitness = quadgram_analysis.ngram_score("english_quadgrams.txt").score(plaintext)
+            fitness = freq_analysis.englishFreqMatchScore(plaintext)
             results.append((key, plaintext, fitness))
         return results
 

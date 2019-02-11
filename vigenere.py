@@ -1,14 +1,8 @@
-
-import math, pprint, string
-import random
-
+import math
 
 class Vigenere():
 
     def __init__(self):
-
-        # self.key = "".join(random.randint(1000000, 9999999))
-        # print(self.key)
 
         self.table = []
 
@@ -56,7 +50,6 @@ class Vigenere():
             multiplier = math.ceil(len(ciphertext) / len(self.key))
             key = self.key * multiplier
         key = key[:len(ciphertext)]
-
 
         plaintext = ""
         for i, c in enumerate(ciphertext):
